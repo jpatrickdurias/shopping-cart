@@ -1,0 +1,25 @@
+[
+  {
+    "promo_type": "discount_bulk",
+    "item": "ult_small",
+    "flat_off_order": 24.90,
+    "minimum_quantity": 3
+  },
+  {
+    "promo_type": "discount_per_item",
+    "item": "ult_large",
+    "flat_off_item": 5.00,
+    "minimum_quantity": 4
+  },
+  {
+    "promo_type": "freebie",
+    "item": "ult_medium",
+    "free_item": "1gb",
+    "minimum_quantity": 1
+  },
+  {
+    "promo_type": "discount_order",
+    "percent_off_order": 10.0,
+    "promo_code": "I<3AMAYSIM"
+  }
+]

@@ -1,0 +1,12 @@
+[
+  {
+    "item": "item_code",
+    "percent_off_order": 11.0,
+    "flat_off_order": 10,
+    "percent_off_item": 11.0,
+    "flat_off_item": 20.0,
+    "free_item": "item_code",
+    "minimum_quantity": 1,
+    "promo_code": "code"
+  }
+]

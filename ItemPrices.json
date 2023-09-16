@@ -1,0 +1,22 @@
+{
+  "ult_small": {
+    "product_name": "Unlimited 1GB",
+    "product_code": "ult_small",
+    "price": 24.90
+  },
+  "ult_medium": {
+    "product_name": "Unlimited 2GB",
+    "product_code": "ult_medium",
+    "price": 29.90
+  },
+  "ult_large": {
+    "product_name": "Unlimited 5GB",
+    "product_code": "ult_large",
+    "price": 44.90
+  },
+  "1gb": {
+    "product_name": "1 GB Data-pack",
+    "product_code": "1gb",
+    "price": 9.90
+  }
+}
