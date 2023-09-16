@@ -290,3 +290,158 @@ describe('ShoppingCart total()', () => {
     expect(testShoppingCart.total()).toBe(60);
   });
 });
+
+describe('Amaysim expected outcomes', () => {
+  beforeEach(() => {
+    const mockPricing = jest.spyOn(helpers, 'getPricing');
+    mockPricing.mockImplementation(() => {
+      return {
+        'ult_small': {
+          'product_name': 'Unlimited 1GB',
+          'product_code': 'ult_small',
+          'price': 24.90,
+        },
+        'ult_medium': {
+          'product_name': 'Unlimited 2GB',
+          'product_code': 'ult_medium',
+          'price': 29.90,
+        },
+        'ult_large': {
+          'product_name': 'Unlimited 5GB',
+          'product_code': 'ult_large',
+          'price': 44.90,
+        },
+        '1gb': {
+          'product_name': '1 GB Data-pack',
+          'product_code': '1gb',
+          'price': 9.90,
+        },
+      };
+    });
+
+    const mockPromos = jest.spyOn(helpers, 'getPromos');
+    mockPromos.mockImplementation(() => {
+      return [
+        {
+          'promo_type': 'discount_bulk',
+          'item': 'ult_small',
+          'flat_off_order': 24.90,
+          'minimum_quantity': 3,
+        },
+        {
+          'promo_type': 'discount_per_item',
+          'item': 'ult_large',
+          'flat_off_item': 5.00,
+          'minimum_quantity': 3,
+        },
+        {
+          'promo_type': 'freebie',
+          'item': 'ult_medium',
+          'free_item': '1gb',
+          'minimum_quantity': 1,
+        },
+        {
+          'promo_type': 'discount_order',
+          'percent_off_order': 10.0,
+          'promo_code': 'I<3AMAYSIM',
+        },
+      ];
+    });
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
+  });
+
+  test('Scenario 1', () => {
+    const testPricingInfo = helpers.getPricing();
+    const testShoppingCart = new ShoppingCart(testPricingInfo);
+
+    testShoppingCart.add('ult_small');
+    testShoppingCart.add('ult_small');
+    testShoppingCart.add('ult_small');
+    testShoppingCart.add('ult_large');
+
+    expect(testShoppingCart.total()).toBe(94.70);
+    expect(testShoppingCart.items()).toEqual([
+      {
+        itemCode: 'ult_small',
+        quantity: 3,
+      },
+      {
+        itemCode: 'ult_large',
+        quantity: 1,
+      },
+    ]);
+  });
+
+  test('Scenario 2', () => {
+    const testPricingInfo = helpers.getPricing();
+    const testShoppingCart = new ShoppingCart(testPricingInfo);
+
+    testShoppingCart.add('ult_small');
+    testShoppingCart.add('ult_small');
+    testShoppingCart.add('ult_large');
+    testShoppingCart.add('ult_large');
+    testShoppingCart.add('ult_large');
+    testShoppingCart.add('ult_large');
+
+    expect(testShoppingCart.total()).toBe(209.40);
+    expect(testShoppingCart.items()).toEqual([
+      {
+        itemCode: 'ult_small',
+        quantity: 2,
+      },
+      {
+        itemCode: 'ult_large',
+        quantity: 4,
+      },
+    ]);
+  });
+
+  test('Scenario 3', () => {
+    const testPricingInfo = helpers.getPricing();
+    const testShoppingCart = new ShoppingCart(testPricingInfo);
+
+    testShoppingCart.add('ult_small');
+    testShoppingCart.add('ult_medium');
+    testShoppingCart.add('ult_medium');
+
+    expect(testShoppingCart.total()).toBe(84.70);
+    expect(testShoppingCart.items()).toEqual([
+      {
+        itemCode: 'ult_small',
+        quantity: 1,
+      },
+      {
+        itemCode: 'ult_medium',
+        quantity: 2,
+      },
+      {
+        itemCode: '1gb',
+        quantity: 2,
+      },
+    ]);
+  });
+
+  test('Scenario 4', () => {
+    const testPricingInfo = helpers.getPricing();
+    const testShoppingCart = new ShoppingCart(testPricingInfo);
+
+    testShoppingCart.add('ult_small');
+    testShoppingCart.add('1gb', 'I<3AMAYSIM');
+
+    expect(testShoppingCart.total()).toBe(31.32);
+    expect(testShoppingCart.items()).toEqual([
+      {
+        itemCode: 'ult_small',
+        quantity: 1,
+      },
+      {
+        itemCode: '1gb',
+        quantity: 1,
+      },
+    ]);
+  });
+});

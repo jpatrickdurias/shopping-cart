@@ -20,13 +20,13 @@ module.exports = class ShoppingCart {
     this.cart = []; // actual final cart at checkout
     this.order = [];
     this.freebies = [];
-    this.input_promo_codes = [];
+    this.inputPromoCodes = [];
 
-    this.total_amount = 0;
+    this.totalAmount = 0;
     this.discount = 0;
 
-    this.available_promos = helpers.getPromos();
-    this.available_promo_codes = this.available_promos.map((promo) => {
+    this.availablePromos = helpers.getPromos();
+    this.availablePromoCodes = this.availablePromos.map((promo) => {
       return promo.promo_code;
     }).filter((code) => {
       return code;
@@ -41,7 +41,8 @@ module.exports = class ShoppingCart {
   total() {
     this.#calcTotal();
     this.#calcDiscounts();
-    return this.total_amount - this.discount;
+    return Math.round(
+        (this.totalAmount - this.discount + Number.EPSILON) * 100) / 100;
   };
 
   /**
@@ -54,9 +55,9 @@ module.exports = class ShoppingCart {
   add(inputItemCode, inputPromoCode) {
     if (!(inputItemCode in this.pricingInfo)) return false;
 
-    if (this.available_promo_codes.includes(inputPromoCode) &&
-      !(this.input_promo_codes.includes(inputPromoCode))) {
-      this.input_promo_codes.push(inputPromoCode);
+    if (this.availablePromoCodes.includes(inputPromoCode) &&
+      !(this.inputPromoCodes.includes(inputPromoCode))) {
+      this.inputPromoCodes.push(inputPromoCode);
     }
 
     const itemIndex = this.order.findIndex(
@@ -95,19 +96,19 @@ module.exports = class ShoppingCart {
    * @return {Array} Array of strings containing input promo codes
    */
   promoCodes() {
-    return this.input_promo_codes;
+    return this.inputPromoCodes;
   }
 
   /**
-   * #calcTotal - calculate total cost and store in total_amount property
+   * #calcTotal - calculate total cost and store in totalAmount property
    */
   #calcTotal() {
-    this.total_amount = 0;
+    this.totalAmount = 0;
 
     this.order.map((item) => {
       const price = this.pricingInfo[item.itemCode].price;
 
-      this.total_amount += price * item.quantity;
+      this.totalAmount += price * item.quantity;
     });
   }
 
@@ -115,7 +116,7 @@ module.exports = class ShoppingCart {
    * #calcFreebies - calculate freebies to be included in the order
    */
   #calcFreebies() {
-    this.available_promos.map((promo) => {
+    this.availablePromos.map((promo) => {
       if (promo.promo_type === 'freebie') {
         const item = this.order.find((item) => item.itemCode === promo.item);
 
@@ -145,7 +146,7 @@ module.exports = class ShoppingCart {
   #calcDiscounts() {
     this.discount = 0;
 
-    this.available_promos.map((promo) => {
+    this.availablePromos.map((promo) => {
       if (promo.promo_type === 'discount_bulk') {
         const item = this.order.find((item) => item.itemCode === promo.item);
 
@@ -157,7 +158,7 @@ module.exports = class ShoppingCart {
           this.discount += discountCount * promo.flat_off_order;
         } else if ('percent_off_order' in promo) {
           this.discount += (
-            discountCount * promo.percent_off_order * this.total_amount)/100;
+            discountCount * promo.percent_off_order * this.totalAmount)/100;
         }
       } else if (promo.promo_type === 'discount_per_item') {
         const item = this.order.find((item) => item.itemCode === promo.item);
@@ -174,8 +175,8 @@ module.exports = class ShoppingCart {
           }
         }
       } else if (promo.promo_type === 'discount_order') {
-        if (this.input_promo_codes.includes(promo.promo_code)) {
-          this.discount += (promo.percent_off_order * this.total_amount)/100;
+        if (this.inputPromoCodes.includes(promo.promo_code)) {
+          this.discount += (promo.percent_off_order * this.totalAmount)/100;
         }
       }
     });

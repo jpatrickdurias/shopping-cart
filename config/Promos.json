@@ -9,7 +9,7 @@
     "promo_type": "discount_per_item",
     "item": "ult_large",
     "flat_off_item": 5.00,
-    "minimum_quantity": 4
+    "minimum_quantity": 3
   },
   {
     "promo_type": "freebie",
