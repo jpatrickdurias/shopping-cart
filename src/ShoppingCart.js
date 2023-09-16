@@ -148,40 +148,83 @@ module.exports = class ShoppingCart {
 
     this.availablePromos.map((promo) => {
       if (promo.promo_type === 'discount_bulk') {
-        const item = this.order.find((item) => item.itemCode === promo.item);
-
-        if (!item) return;
-
-        const discountCount = Math.floor(item.quantity/promo.minimum_quantity);
-
-        if ('flat_off_order' in promo) {
-          this.discount += discountCount * promo.flat_off_order;
-        } else if ('percent_off_order' in promo) {
-          this.discount += (
-            discountCount * promo.percent_off_order * this.totalAmount)/100;
-        }
+        this.#applyDiscountBulk(promo);
       } else if (promo.promo_type === 'discount_per_item') {
-        const item = this.order.find((item) => item.itemCode === promo.item);
-
-        if (!item) return;
-
-        if (item.quantity > promo.minimum_quantity) {
-          if ('flat_off_item' in promo) {
-            this.discount += item.quantity * promo.flat_off_item;
-          } else if ('percent_off_item' in promo) {
-            this.discount += (
-              item.quantity * promo.percent_off_item *
-              this.pricingInfo[item.itemCode])/ 100;
-          }
-        }
+        this.#applyDiscountItem(promo);
       } else if (promo.promo_type === 'discount_order') {
-        if (this.inputPromoCodes.includes(promo.promo_code)) {
-          this.discount += (promo.percent_off_order * this.totalAmount)/100;
-        }
+        this.#applyDiscountOrder(promo);
       }
     });
   }
 
+  /**
+   * #applyDiscountBulk - Apply bulk discount to order
+   *
+   * @param {object} promo Promo object in the format
+   * {
+   *    "promo_type": "discount_bulk",
+   *    "item": "code",
+   *    "flat_off_order": number, // either flat_off_order OR percent_off_order
+   *    "minimum_quantity": number,
+   * }
+   */
+  #applyDiscountBulk(promo) {
+    const item = this.order.find((item) => item.itemCode === promo.item);
+
+    if (!item) return;
+
+    const discountCount = Math.floor(item.quantity/promo.minimum_quantity);
+
+    if ('flat_off_order' in promo) {
+      this.discount += discountCount * promo.flat_off_order;
+    } else if ('percent_off_order' in promo) {
+      this.discount += (
+        discountCount * promo.percent_off_order * this.totalAmount)/100;
+    }
+  }
+
+  /**
+   * #applyDiscountItem - Apply discount to per item
+   *
+   * @param {object} promo Promo object in the format
+   * {
+   *    "promo_type": "discount_per_item",
+   *    "item": "code",
+   *    "flat_off_item": number, // either flat_off_item OR percent_off_item
+   *    "minimum_quantity": number,
+   * }
+   */
+  #applyDiscountItem(promo) {
+    const item = this.order.find((item) => item.itemCode === promo.item);
+
+    if (!item) return;
+
+    if (item.quantity > promo.minimum_quantity) {
+      if ('flat_off_item' in promo) {
+        this.discount += item.quantity * promo.flat_off_item;
+      } else if ('percent_off_item' in promo) {
+        this.discount += (
+          item.quantity * promo.percent_off_item *
+          this.pricingInfo[item.itemCode])/ 100;
+      }
+    }
+  }
+
+  /**
+   * #applyDiscountOrder - Apply discount to whole order
+   *
+   * @param {object} promo Promo object in the format
+   * {
+   *    "promo_type": "discount_order",
+   *    "percent_off_order": number,
+   *    "promo_code": "code"
+   * }
+   */
+  #applyDiscountOrder(promo) {
+    if (this.inputPromoCodes.includes(promo.promo_code)) {
+      this.discount += (promo.percent_off_order * this.totalAmount)/100;
+    }
+  }
   /**
    * #generateFinalCart - generate and consolidate final cart items
    */
