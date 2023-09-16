@@ -1,4 +1,4 @@
-const fs = require('fs')
+const helpers = require('./helpers')
 
 module.exports = class ShoppingCart {
   constructor(pricingInfo) {
@@ -6,43 +6,38 @@ module.exports = class ShoppingCart {
     this.cart = [] // actual final cart at checkout
     this.order = []
     this.freebies = []
-    this.promo_code = []
+    this.input_promo_codes = []
+
     this.total_amount = 0
     this.discount = 0
 
-    const jsonFile = fs.readFileSync("./Promos.json")
-    this.promos = JSON.parse(jsonFile)
+    this.available_promos = helpers.getPromos();
+    this.available_promo_codes = this.available_promos.map((promo) => {
+      return promo.promo_code
+    }).filter((code) => { return code })
   }
 
   total() {
-    this.calcTotal()
-    this.calcDiscounts()
+    this.#calcTotal()
+    this.#calcDiscounts()
     return this.total_amount - this.discount
   }
 
-  calcTotal() {
-    console.log(this.order)
-    this.total_amount = 0
+  add(inputItemCode, inputPromoCode) {
+    if (!(inputItemCode in this.pricingInfo)) return false
 
-    this.order.map(item => {
-      const price = this.pricingInfo[item.itemCode].price
+    if (this.available_promo_codes.includes(inputPromoCode) &&
+      !(this.input_promo_codes.includes(inputPromoCode))) {
+      this.input_promo_codes.push(inputPromoCode)
+    }
 
-      this.total_amount += price * item.quantity
-    })
-  }
-
-  add(itemCode, promoCode) {
-    if (!(itemCode in this.pricingInfo)) return false
-
-    if (!(promoCode) in this.promoCode) this.promo_code.push(promoCode)
-
-    const itemIndex = this.order.findIndex((item) => item.itemCode === itemCode)
+    const itemIndex = this.order.findIndex((item) => item.itemCode === inputItemCode)
 
     if (itemIndex !== -1) {
       this.order[itemIndex].quantity += 1
     } else {
       this.order.push({
-        itemCode: itemCode,
+        itemCode: inputItemCode,
         quantity: 1
       })
     }
@@ -50,10 +45,31 @@ module.exports = class ShoppingCart {
     return true
   }
 
-  calcFreebies() {
-    this.promos.map((promo) => {
+  items() {
+    this.#generateFinalCart()
+    return this.cart
+  }
+
+  promoCodes() {
+    return this.input_promo_codes
+  }
+
+  #calcTotal() {
+    this.total_amount = 0
+
+    this.order.map(item => {
+      const price = this.pricingInfo[item.itemCode].price 
+
+      this.total_amount += price * item.quantity
+    })
+  }
+
+  #calcFreebies() {
+    this.available_promos.map((promo) => {
       if (promo.promo_type === 'freebie') {
         const item = this.order.find((item) => item.itemCode === promo.item)
+
+        if (!item) return
 
         const freebie_count = Math.floor(item.quantity/promo.minimum_quantity)
 
@@ -71,12 +87,14 @@ module.exports = class ShoppingCart {
     })
   }
 
-  calcDiscounts() {
+  #calcDiscounts() {
     this.discount = 0
 
-    this.promos.map((promo) => {
+    this.available_promos.map((promo) => {
       if (promo.promo_type === 'discount_bulk') {
         const item = this.order.find((item) => item.itemCode === promo.item)
+
+        if (!item) return
 
         const discount_count = Math.floor(item.quantity/promo.minimum_quantity)
 
@@ -88,6 +106,8 @@ module.exports = class ShoppingCart {
       } else if (promo.promo_type === 'discount_per_item') {
         const item = this.order.find((item) => item.itemCode === promo.item)
 
+        if (!item) return
+
         if (item.quantity > promo.minimum_quantity) {
           if ('flat_off_item' in promo) {
             this.discount += item.quantity * promo.flat_off_item
@@ -96,17 +116,15 @@ module.exports = class ShoppingCart {
           }
         }
       } else if (promo.promo_type === 'discount_order') {
-        if (promo.promo_code in this.promoCode) {
-          this.discount += promo.percent_off_order * this.total_amount
+        if (this.input_promo_codes.includes(promo.promo_code)) {
+          this.discount += (promo.percent_off_order * this.total_amount)/100
         }
       }
     })
   }
 
-
-
-  generateFinalCart() {
-    this.calcFreebies()
+  #generateFinalCart() {
+    this.#calcFreebies()
 
     this.cart = [...this.order]
 
@@ -118,19 +136,11 @@ module.exports = class ShoppingCart {
       } else {
         this.cart.push({
           itemCode: free_item.itemCode,
-          quantity: freebie_count
+          quantity: free_item.quantity
         })
       }
     })
   }
 
-  items() {
-    this.generateFinalCart()
-    return this.cart
-  }
-
-  promoCode() {
-    return this.promo_code
-  }
 
 }
