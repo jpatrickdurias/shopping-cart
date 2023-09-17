@@ -9,20 +9,15 @@ function main() {
 
   const cart = new ShoppingCart(pricingInfo);
 
-  // cart.add('ult_small')
-  // cart.add('ult_small')
-  // cart.add('ult_small')
-  // cart.add('ult_small')
-  // cart.add('ult_small')
-  cart.add('ult_small', 'I<3AMAYSIM');
+  cart.add('ult_small');
+  cart.add('ult_small');
+  cart.add('ult_large');
+  cart.add('ult_large');
+  cart.add('ult_large');
+  cart.add('ult_large');
 
-
-  // cart.add('ult_medium')
-  // cart.add('ult_large')
-  // cart.add('1gb')
-  // console.log(cart.promoCodes)
-  console.log(cart.total());
-  console.log(cart.items());
+  console.log('Total amount: %d', cart.total());
+  console.log('Cart Items: %o', cart.items());
 };
 
 main();
