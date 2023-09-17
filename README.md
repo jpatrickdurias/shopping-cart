@@ -1,10 +1,16 @@
 # shopping-cart
 
+## Running the application
+
+Simply run the command `node src/main.js` on your machine to run the application. The program is currently not designed to take user input but an this can easily be changed if necessary.
+
 ## Running the tests
 
 Install dependencies via npm
 
 Run `jest` via npm `npm test -- --updateSnapshot`
+
+Note: The jest tests also contain tests for the scenarios presented in the challenge PDF. They are at the end and are labelled as `Amaysim expected outcomes`
 
 ## Adding a new promo type
 
